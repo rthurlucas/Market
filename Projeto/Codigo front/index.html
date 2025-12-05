@@ -3,282 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreshMarket - Premium Experience</title>
+    <title>FreshMarket - Premium Colors</title>
+    <script src="main.js" defer></script>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;800&display=swap" rel="stylesheet">
     
-    <style>
-        :root {
-            --primary-color: #641b09; /* Verde Neon */
-            --dark-bg: #0f0f0f;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-        }
 
-        body { 
-            margin: 0; 
-            overflow: hidden; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-            font-family: 'Poppins', sans-serif; 
-            color: white; 
-        }
-
-        /* Layout Grid: Texto na esquerda, 3D no fundo/direita */
-        #main-container {
-            position: absolute;
-            width: 100%;
-            height: 100vh;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            align-items: center;
-            padding: 0 10%;
-            box-sizing: border-box;
-            pointer-events: none; /* Permite clicar no 3D atrás */
-        }
-
-        /* Cartão de Vidro (Glassmorphism) */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            pointer-events: auto; /* Reativa cliques aqui */
-            max-width: 500px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        h2 { color: var(--primary-color); letter-spacing: 2px; font-size: 1rem; margin-bottom: 10px; }
-        h1 { font-size: 4rem; margin: 0; line-height: 1; font-weight: 800; text-transform: uppercase; }
-        p { font-size: 1.5rem; color: #ddd; margin: 20px 0; font-weight: 300; }
-        
-        .price-tag {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: white;
-            display: block;
-            margin-bottom: 30px;
-        }
-
-        button {
-            padding: 15px 50px;
-            font-size: 1.2rem;
-            background: var(--primary-color);
-            color: #000;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 800;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 255, 163, 0.4);
-        }
-
-        button:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 0 30px rgba(0, 255, 163, 0.8);
-            background: white;
-        }
-
-        #canvas-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1; /* Fica atrás de tudo */
-        }
-
-        #feedback { margin-top: 15px; font-size: 0.9rem; min-height: 20px; }
-    </style>
 </head>
 <body>
 
-    <div id="canvas-container"></div>
+    <div class="vignette"></div> <div id="canvas-container"></div>
 
     <div id="main-container">
         <div class="glass-card">
-            <h2>NEW ARRIVAL</h2>
+            <h2>LIMITED EDITION</h2>
             <h1 id="prod-nome">LOADING...</h1>
-            <p>Sinta a energia do futuro. Bebida orgânica com sabor intenso.</p>
+            <p>Refrescância máxima com ingredientes selecionados. A energia que você precisa para dominar o seu dia.</p>
             <span id="prod-preco" class="price-tag">R$ --,--</span>
             
-            <button id="btn-comprar">COMPRAR</button>
+            <button id="btn-comprar" class="buy-btn">COMPRAR AGORA</button>
             <div id="feedback"></div>
+
+            <div class="navigation">
+                <button id="btn-prev" class="nav-btn">❮</button>
+                <button id="btn-next" class="nav-btn">❯</button>
+            </div>
         </div>
         <div></div> 
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-    <script>
-        // --- 1. SETUP DO THREE.JS ---
-        const scene = new THREE.Scene();
-        // Fog (neblina) para fundir o chão com o fundo
-        scene.fog = new THREE.FogExp2(0x000000, 0.02);
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio); // Melhora a nitidez
-        renderer.shadowMap.enabled = true; // Habilita sombras
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        // --- ILUMINAÇÃO DE ESTÚDIO ---
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-        scene.add(ambientLight);
-
-        // Luz Principal (Key Light)
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
-        mainLight.position.set(5, 10, 7);
-        mainLight.castShadow = true;
-        scene.add(mainLight);
-
-        // Luz de Recorte (Rim Light) - Colorida para estilo
-        const rimLight = new THREE.SpotLight(0x00ffa3, 2);
-        rimLight.position.set(-5, 5, -5);
-        rimLight.lookAt(0, 0, 0);
-        scene.add(rimLight);
-
-        // --- OBJETOS ---
-
-        // Grupo para segurar a lata (facilita animar tudo junto)
-        const productGroup = new THREE.Group();
-        scene.add(productGroup);
-
-        // 1. A Lata (Cilindro)
-        // Dica: Se quiser usar uma textura real, use textureLoader.load('url_da_imagem.jpg')
-        const canGeometry = new THREE.CylinderGeometry(1, 1, 4, 32);
-        const canMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x222222, 
-            metalness: 0.9, 
-            roughness: 0.3,
-        });
-        const can = new THREE.Mesh(canGeometry, canMaterial);
-        can.castShadow = true;
-        productGroup.add(can);
-
-        // 2. O Rótulo (Um cilindro um pouco maior e transparente ou colorido)
-        const labelGeometry = new THREE.CylinderGeometry(1.01, 1.01, 2.5, 32, 1, true); // true = sem tampas
-        const labelMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x00ffa3, 
-            side: THREE.DoubleSide,
-            transparent: true,
-            opacity: 0.8
-        });
-        const label = new THREE.Mesh(labelGeometry, labelMaterial);
-        productGroup.add(label);
-
-        // 3. Partículas Flutuantes (Gelo/Bolhas)
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 200;
-        const posArray = new Float32Array(particlesCount * 3);
-
-        for(let i = 0; i < particlesCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 15; // Espalha em area de 15
-        }
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const particlesMaterial = new THREE.PointsMaterial({
-            size: 0.05,
-            color: 0x00ffa3,
-            transparent: true,
-            opacity: 0.8
-        });
-        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-        scene.add(particlesMesh);
-
-        // Posicionamento Inicial
-        productGroup.position.x = 3; // Move para a direita da tela
-        camera.position.z = 7;
-
-        // --- ANIMAÇÃO LOOP ---
-        const clock = new THREE.Clock();
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = clock.getElapsedTime();
-
-            // Lata flutuando suavemente
-            productGroup.position.y = Math.sin(time) * 0.2;
-            productGroup.rotation.y += 0.005;
-
-            // Partículas girando devagar
-            particlesMesh.rotation.y = time * 0.05;
-            particlesMesh.rotation.x = time * 0.02;
-
-            renderer.render(scene, camera);
-        }
-        animate();
-
-
-        // --- INTEGRAÇÃO (JAVA + GSAP) ---
-        const btnComprar = document.getElementById('btn-comprar');
-        const feedback = document.getElementById('feedback');
-
-        async function carregarProduto() {
-            try {
-                const response = await fetch('http://localhost:8080/api/produto');
-                const data = await response.json();
-                
-                document.getElementById('prod-nome').innerText = data.nome;
-                document.getElementById('prod-preco').innerText = `R$ ${data.preco.toFixed(2)}`;
-
-                // Animação de Entrada
-                gsap.from(productGroup.position, { duration: 2, x: 10, ease: "power4.out" });
-                gsap.from(productGroup.rotation, { duration: 2, y: Math.PI * 2, ease: "power4.out" });
-                gsap.from(".glass-card", { duration: 1.5, y: 50, opacity: 0, delay: 0.5, ease: "power2.out" });
-
-            } catch (error) {
-                console.log(error);
-                feedback.innerText = "Offline Mode (Sem Java)";
-            }
-        }
-
-        btnComprar.addEventListener('click', async () => {
-            // Efeito visual imediato no clique
-            gsap.to(btnComprar, { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 });
-
-            try {
-                const response = await fetch('http://localhost:8080/api/comprar', { method: 'POST' });
-                
-                if (response.ok) {
-                    const msg = await response.text();
-                    feedback.innerText = "Compra Realizada!";
-                    feedback.style.color = "#00ffa3";
-
-                    // Animação "Compra Épica"
-                    // 1. Gira muito rápido
-                    gsap.to(productGroup.rotation, { duration: 0.5, y: productGroup.rotation.y + 10, ease: "back.in(1.7)" });
-                    // 2. Voa para a tela (zumenta) e some
-                    gsap.to(productGroup.scale, { duration: 0.5, x: 0, y: 0, z: 0, delay: 0.5 });
-                    gsap.to(productGroup.position, { duration: 0.5, y: 5, delay: 0.5, onComplete: () => {
-                        // Reset para demonstração
-                        setTimeout(() => {
-                            gsap.to(productGroup.scale, { x:1, y:1, z:1, duration: 1 });
-                            gsap.to(productGroup.position, { y: 0, duration: 1 });
-                        }, 2000);
-                    }});
-
-                } else {
-                    feedback.innerText = "Estoque Esgotado!";
-                    feedback.style.color = "#ff4444";
-                    // Treme a lata
-                    gsap.from(productGroup.position, { x: productGroup.position.x + 0.2, duration: 0.1, repeat: 5, yoyo: true });
-                }
-            } catch (error) {
-                feedback.innerText = "Erro de conexão";
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        carregarProduto();
-
-    </script>
 </body>
 </html>

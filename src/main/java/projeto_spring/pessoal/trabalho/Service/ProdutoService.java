@@ -11,18 +11,24 @@ public class ProdutoService {
     @Autowired
     private ProdutoRepository repository;
 
-    public Produto obterProdutoDestaque() {
-        return repository.buscarProdutoUnico();
+    // Obtém um produto específico pelo ID
+    public Produto obterProdutoPorId(Long id) {
+        return repository.buscarProdutoPorId(id);
     }
 
-    public boolean processarCompra() {
-        Produto produto = repository.buscarProdutoUnico();
+    // Retorna o total de produtos no catálogo
+    public int obterTotalProdutos() {
+        return repository.totalProdutos();
+    }
 
-        if (produto.getEstoque() > 0) {
+    public boolean processarCompra(Long id) {
+        Produto produto = repository.buscarProdutoPorId(id);
+
+        if (produto != null && produto.getEstoque() > 0) {
             // Regra de negócio: Diminuir estoque
-            repository.atualizarEstoque(produto.getEstoque() - 1);
+            repository.atualizarEstoque(id, produto.getEstoque() - 1);
             return true; // Compra aprovada
         }
-        return false; // Sem estoque
+        return false; // Sem estoque ou produto não encontrado
     }
 }

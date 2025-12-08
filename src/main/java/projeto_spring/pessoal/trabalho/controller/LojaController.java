@@ -1,7 +1,5 @@
 package projeto_spring.pessoal.trabalho.controller;
 
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +14,31 @@ public class LojaController {
     @Autowired
     private ProdutoService service;
 
-    @GetMapping("/produto")
-    public ResponseEntity<Produto> getProduto() {
-        return ResponseEntity.ok(service.obterProdutoDestaque());
+    // NOVO ENDPOINT: Retorna o total de produtos para o front-end saber o limite da navegação
+    @GetMapping("/total")
+    public ResponseEntity<Integer> getTotalProdutos() {
+        return ResponseEntity.ok(service.obterTotalProdutos());
     }
 
-    @PostMapping("/comprar")
-    public ResponseEntity<String> comprar() {
-        boolean sucesso = service.processarCompra();
+    // ENDPOINT ATUALIZADO: Agora aceita o ID do produto no path
+    @GetMapping("/produto/{id}")
+    public ResponseEntity<Produto> getProduto(@PathVariable Long id) {
+        Produto produto = service.obterProdutoPorId(id);
+        if (produto != null) {
+            return ResponseEntity.ok(produto);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ENDPOINT ATUALIZADO: Agora aceita o ID do produto no path
+    @PostMapping("/comprar/{id}")
+    public ResponseEntity<String> comprar(@PathVariable Long id) {
+        boolean sucesso = service.processarCompra(id);
 
         if (sucesso) {
-            // O Service já atualizou o objeto, pegamos o valor novo para mostrar
-            int estoqueRestante = service.obterProdutoDestaque().getEstoque();
+            // O Service já atualizou o objeto
+            int estoqueRestante = service.obterProdutoPorId(id).getEstoque();
             return ResponseEntity.ok("Compra realizada! Estoque restante: " + estoqueRestante);
         } else {
             return ResponseEntity.status(400).body("Produto esgotado!");

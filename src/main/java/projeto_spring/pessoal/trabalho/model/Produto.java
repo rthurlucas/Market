@@ -5,13 +5,16 @@ public class Produto {
     private String nome;
     private double preco;
     private int estoque;
+    // NOVO: Cor para o front-end 3D
+    private String cor;
 
     // Construtor
-    public Produto(Long id, String nome, double preco, int estoque) {
+    public Produto(Long id, String nome, double preco, int estoque, String cor) {
         this.id = id;
         this.nome = nome;
         this.preco = preco;
         this.estoque = estoque;
+        this.cor = cor;
     }
 
     // Getters e Setters (Necessários para o Java converter para JSON)
@@ -23,5 +26,8 @@ public class Produto {
     public void setPreco(double preco) { this.preco = preco; }
     public int getEstoque() { return estoque; }
     public void setEstoque(int estoque) { this.estoque = estoque; }
+    // NOVO: Getter para cor
+    public String getCor() { return cor; }
+    public void setCor(String cor) { this.cor = cor; }
 
 }
